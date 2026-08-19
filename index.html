@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mausam Nepal | मौसम नेपाल - Live Weather Forecast</title>
+  <meta name="description" content="Check live weather forecast, temperature, hourly and 7-day predictions for cities and regions across Nepal.">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Mukta:wght@400;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="theme-default">
+  <div class="background-backdrop">
+    <div class="glow-orb orb-1"></div>
+    <div class="glow-orb orb-2"></div>
+    <div class="glow-orb orb-3"></div>
+    <div class="himalayan-silhouette"></div>
+  </div>
+
+  <div class="app-container">
+    <!-- Header Area -->
+    <header class="app-header">
+      <div class="brand-container">
+        <div class="logo-icon">
+          <i class="fa-solid fa-cloud-sun"></i>
+        </div>
+        <div class="brand-text">
+          <div class="brand-title-wrap">
+            <h1>Mausam Nepal</h1>
+            <span class="nepali-brand">मौसम नेपाल</span>
+          </div>
+          <p class="brand-subtitle">Nepal Weather Portal</p>
+        </div>
+      </div>
+
+      <!-- Search & Controls -->
+      <div class="header-controls">
+        <div class="search-wrapper">
+          <div class="search-input-box">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input 
+              type="text" 
+              id="city-search-input" 
+              placeholder="Search city in Nepal (e.g. Pokhara, Dharan, Namche)..." 
+              autocomplete="off"
+              aria-label="Search city or location in Nepal"
+            >
+            <button id="clear-search-btn" class="clear-search-btn hidden" aria-label="Clear search">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div id="search-spinner" class="search-spinner hidden">
+              <i class="fa-solid fa-circle-notch fa-spin"></i>
+            </div>
+          </div>
+          <div id="search-dropdown" class="search-dropdown hidden"></div>
+        </div>
+
+        <div class="action-buttons">
+          <button id="geo-location-btn" class="btn-icon" title="Use current GPS location" aria-label="Use Current Location">
+            <i class="fa-solid fa-location-crosshairs"></i>
+            <span>Current Location</span>
+          </button>
+          
+          <div class="unit-toggle" id="unit-toggle" role="group" aria-label="Temperature unit toggle">
+            <button class="unit-btn active" data-unit="C">°C</button>
+            <button class="unit-btn" data-unit="F">°F</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Quick Province & Region Filter Bar -->
+    <section class="quick-locations-section" aria-label="Quick Select Nepal Regions">
+      <div class="province-filter-pills" id="province-filters">
+        <button class="pill-btn active" data-province="all">All Nepal</button>
+        <button class="pill-btn" data-province="Bagmati">Bagmati</button>
+        <button class="pill-btn" data-province="Gandaki">Gandaki</button>
+        <button class="pill-btn" data-province="Koshi">Koshi</button>
+        <button class="pill-btn" data-province="Madhesh">Madhesh</button>
+        <button class="pill-btn" data-province="Lumbini">Lumbini</button>
+        <button class="pill-btn" data-province="Karnali">Karnali</button>
+        <button class="pill-btn" data-province="Sudurpashchim">Sudurpashchim</button>
+        <button class="pill-btn" data-province="Himalayas"><i class="fa-solid fa-mountain"></i> Himalayas</button>
+      </div>
+
+      <div class="popular-cities-scroll" id="cities-chip-list">
+        <!-- Dynamically generated city chips -->
+      </div>
+    </section>
+
+    <!-- Loading & Error States -->
+    <div id="loading-overlay" class="loading-state hidden">
+      <div class="loader-spinner"></div>
+      <p>Fetching weather data...</p>
+    </div>
+
+    <div id="error-banner" class="error-banner hidden">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+      <span id="error-message">Unable to load weather data. Please try again.</span>
+      <button id="error-close-btn"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <!-- Main Weather Content -->
+    <main class="weather-dashboard" id="weather-dashboard">
+      <!-- Left Column: Hero Weather & Hourly -->
+      <div class="dashboard-primary">
+        <!-- Hero Weather Card -->
+        <article class="weather-hero-card glass-card">
+          <div class="hero-top-row">
+            <div class="location-details">
+              <div class="location-heading">
+                <i class="fa-solid fa-location-dot location-pin"></i>
+                <h2 id="current-city-name">Kathmandu</h2>
+                <span class="flag-badge">🇳🇵</span>
+              </div>
+              <p class="location-sub" id="current-region-name">Bagmati Province, Nepal</p>
+              <div class="time-elevation-row">
+                <span id="current-time-str"><i class="fa-regular fa-clock"></i> --:--</span>
+                <span class="dot-divider">•</span>
+                <span id="current-elevation-str"><i class="fa-solid fa-mountain"></i> Elev: 1,400m</span>
+              </div>
+            </div>
+
+            <div class="nepali-greeting-card">
+              <span class="nepali-namaste" id="namaste-text">नमस्ते!</span>
+              <span class="greeting-sub" id="greeting-sub">शुभ दिन (Good Day)</span>
+            </div>
+          </div>
+
+          <div class="hero-main-row">
+            <div class="temp-condition-box">
+              <div class="hero-temp-wrapper">
+                <span class="hero-temperature" id="hero-temp">--</span>
+                <span class="hero-temp-unit" id="hero-unit">°C</span>
+              </div>
+              <div class="hero-condition-wrap">
+                <h3 class="condition-title" id="condition-title">Partly Cloudy</h3>
+                <p class="feels-like-text">Feels like <strong id="feels-like-temp">--°</strong></p>
+                <div class="min-max-badge">
+                  <span><i class="fa-solid fa-arrow-up"></i> H: <b id="today-max-temp">--°</b></span>
+                  <span><i class="fa-solid fa-arrow-down"></i> L: <b id="today-min-temp">--°</b></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="hero-icon-wrapper">
+              <div class="weather-icon-sphere" id="weather-icon-container">
+                <i class="fa-solid fa-sun weather-hero-icon" id="hero-weather-icon"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Highlight Indicators -->
+          <div class="hero-quick-indicators">
+            <div class="quick-ind-item">
+              <i class="fa-solid fa-droplet"></i>
+              <div>
+                <span class="ind-label">Precipitation</span>
+                <span class="ind-value" id="quick-rain">0%</span>
+              </div>
+            </div>
+            <div class="quick-ind-item">
+              <i class="fa-solid fa-wind"></i>
+              <div>
+                <span class="ind-label">Wind Speed</span>
+                <span class="ind-value" id="quick-wind">-- km/h</span>
+              </div>
+            </div>
+            <div class="quick-ind-item">
+              <i class="fa-solid fa-sun"></i>
+              <div>
+                <span class="ind-label">UV Index</span>
+                <span class="ind-value" id="quick-uv">--</span>
+              </div>
+            </div>
+            <div class="quick-ind-item">
+              <i class="fa-solid fa-water"></i>
+              <div>
+                <span class="ind-label">Humidity</span>
+                <span class="ind-value" id="quick-humidity">--%</span>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Hourly Forecast Section -->
+        <section class="hourly-forecast-section glass-card">
+          <div class="section-header">
+            <div class="section-title-wrap">
+              <i class="fa-regular fa-clock"></i>
+              <h3>24-Hour Forecast</h3>
+            </div>
+            <span class="section-tag">Hourly updates</span>
+          </div>
+          <div class="hourly-scroll-container" id="hourly-forecast-list">
+            <!-- Hourly cards inserted dynamically -->
+          </div>
+        </section>
+      </div>
+
+      <!-- Right Column: 7-Day Forecast & Detailed Weather Grid -->
+      <div class="dashboard-secondary">
+        <!-- 7-Day Daily Forecast -->
+        <section class="daily-forecast-section glass-card">
+          <div class="section-header">
+            <div class="section-title-wrap">
+              <i class="fa-regular fa-calendar-days"></i>
+              <h3>7-Day Forecast</h3>
+            </div>
+            <span class="section-tag">Next week</span>
+          </div>
+          <div class="daily-forecast-list" id="daily-forecast-list">
+            <!-- 7-Day forecast rows inserted dynamically -->
+          </div>
+        </section>
+
+        <!-- Environmental Metrics Grid -->
+        <section class="metrics-grid">
+          <!-- Humidity Card -->
+          <div class="metric-card glass-card">
+            <div class="metric-header">
+              <i class="fa-solid fa-water metric-icon"></i>
+              <span class="metric-title">Humidity</span>
+            </div>
+            <div class="metric-body">
+              <span class="metric-main-value" id="metric-humidity">--%</span>
+              <p class="metric-hint" id="humidity-hint">Comfortable air</p>
+            </div>
+          </div>
+
+          <!-- Wind Card -->
+          <div class="metric-card glass-card">
+            <div class="metric-header">
+              <i class="fa-solid fa-wind metric-icon"></i>
+              <span class="metric-title">Wind</span>
+            </div>
+            <div class="metric-body">
+              <span class="metric-main-value" id="metric-wind">-- km/h</span>
+              <p class="metric-hint" id="wind-dir-hint"><i class="fa-solid fa-compass"></i> Wind Direction: --</p>
+            </div>
+          </div>
+
+          <!-- Sunrise & Sunset Card -->
+          <div class="metric-card glass-card span-2-col">
+            <div class="metric-header">
+              <i class="fa-solid fa-sun-plant-wilt metric-icon"></i>
+              <span class="metric-title">Sun Schedule (Himalayan Sky)</span>
+            </div>
+            <div class="sun-times-container">
+              <div class="sun-time-box">
+                <i class="fa-solid fa-sun sun-rise-icon"></i>
+                <div>
+                  <span class="sun-time-label">Sunrise</span>
+                  <span class="sun-time-value" id="metric-sunrise">--:-- AM</span>
+                </div>
+              </div>
+              <div class="sun-arc-line">
+                <div class="sun-progress-marker" id="sun-progress-marker"></div>
+              </div>
+              <div class="sun-time-box">
+                <i class="fa-solid fa-moon sun-set-icon"></i>
+                <div>
+                  <span class="sun-time-label">Sunset</span>
+                  <span class="sun-time-value" id="metric-sunset">--:-- PM</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Air Pressure Card -->
+          <div class="metric-card glass-card">
+            <div class="metric-header">
+              <i class="fa-solid fa-gauge-high metric-icon"></i>
+              <span class="metric-title">Pressure</span>
+            </div>
+            <div class="metric-body">
+              <span class="metric-main-value" id="metric-pressure">-- hPa</span>
+              <p class="metric-hint" id="pressure-hint">Atmospheric pressure</p>
+            </div>
+          </div>
+
+          <!-- UV Index Card -->
+          <div class="metric-card glass-card">
+            <div class="metric-header">
+              <i class="fa-solid fa-shield-halved metric-icon"></i>
+              <span class="metric-title">UV Index</span>
+            </div>
+            <div class="metric-body">
+              <div class="uv-index-wrapper">
+                <span class="metric-main-value" id="metric-uv">--</span>
+                <span class="uv-level-badge" id="uv-badge">Moderate</span>
+              </div>
+              <p class="metric-hint" id="uv-hint">Sun protection advice</p>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <div class="footer-content">
+        <p class="footer-brand">
+          <i class="fa-solid fa-dharmachakra"></i> 
+          <strong>Mausam Nepal (मौसम नेपाल)</strong> • Accurate weather for Nepal's hills, plains & Himalayas 🇳🇵
+        </p>
+        <p class="footer-meta">
+          Data powered by Open-Meteo Meteorological Service • Developed for fast, accessible Nepal weather lookup.
+        </p>
+      </div>
+    </footer>
+  </div>
+
+  <!-- JavaScript File -->
+  <script src="app.js"></script>
+</body>
+</html>
